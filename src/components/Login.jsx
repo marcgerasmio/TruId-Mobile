@@ -1,13 +1,87 @@
 import Register from "./Register.jsx";
-import { NavLink } from "react-router-dom";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import supabase from "./supabaseClient.jsx";
 
 const Login = () => {
   const [isLogin, isRegister] = useState(true);
   const [password, showPassword] = useState(false);
+  const [userType, setUserType] = useState('tenant');
+  const [id, setId] = useState('')
+  const [pass, setPass] = useState('');
+  const [showStatusModal, setShowStatusModal] = useState(false);
+  const [statusMessage, setStatusMessage] = useState('');
+  const navigate = useNavigate();
 
   const SwitchToggler = () => {
     isRegister(!isLogin);
+  };
+
+  const check = () =>{
+    if(userType === 'tenant'){
+     login_tenant();
+    }
+    else{
+     login_employee();
+    }
+  }
+
+  const login_tenant = async () => {
+    const { data } = await supabase
+    .from('Tenant')
+    .select('*')
+    .eq('business_number', id)
+    .single();
+
+    if (data && data.password === pass && data.business_number === id) {
+      if (data.status === 'Pending') {
+        setStatusMessage('Your account is waiting for confirmation.');
+        setShowStatusModal(true);
+        return;
+      } else if (data.status === 'Rejected') {
+        setStatusMessage('Account registration is rejected. Please contact administrator.');
+        setShowStatusModal(true);
+        return;
+      } else if (data.status === 'Accepted') {
+        const number = data.business_number;
+        sessionStorage.setItem('number', number);
+        navigate("/tenant");
+      }
+    }
+    else {
+      alert('Wrong Credentials');
+    }
+  };
+
+  const login_employee = async () => {
+    const { data } = await supabase
+    .from('Employee')
+    .select('*')
+    .eq('id_number', id)
+    .single();
+
+    if (data && data.password === pass && data.id_number === id) {
+      if (data.status === 'Pending') {
+        setStatusMessage('Your account is waiting for confirmation.');
+        setShowStatusModal(true);
+        return;
+      } else if (data.status === 'Rejected') {
+        setStatusMessage('Account registration is rejected. Please contact administrator.');
+        setShowStatusModal(true);
+        return;
+      } else if (data.status === 'Accepted') {
+        const number = data.id_number;
+        sessionStorage.setItem('number', number);
+        const dept = data.department_assigned;
+        sessionStorage.setItem('dept', dept);
+        const name = data.employee_name;
+        sessionStorage.setItem('name', name);
+        navigate("/employee");
+      }
+    }
+    else {
+      alert('Wrong Credentials');
+    }
   };
 
   return (
@@ -20,21 +94,20 @@ const Login = () => {
               <span className="text-red-700">I</span>
               <span className="text-blue-900">D</span>
             </h1>
-            <form>
               <label className="input input-bordered flex items-center gap-2 mb-2">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 16 16"
-                  fill="currentColor"
-                  className="h-4"
-                >
-                  <path d="M2.5 3A1.5 1.5 0 0 0 1 4.5v.793c.026.009.051.02.076.032L7.674 8.51c.206.1.446.1.652 0l6.598-3.185A.755.755 0 0 1 15 5.293V4.5A1.5 1.5 0 0 0 13.5 3h-11Z" />
-                  <path d="M15 6.954 8.978 9.86a2.25 2.25 0 0 1-1.956 0L1 6.954V11.5A1.5 1.5 0 0 0 2.5 13h11a1.5 1.5 0 0 0 1.5-1.5V6.954Z" />
-                </svg>
+              <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 16 16"
+          fill="currentColor"
+          className="h-4 w-4 opacity-70"
+        >
+          <path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM12.735 14c.618 0 1.093-.561.872-1.139a6.002 6.002 0 0 0-11.215 0c-.22.578.254 1.139.872 1.139h9.47Z" />
+        </svg>
                 <input
                   type="text"
                   className="grow text-gray-600"
-                  placeholder="Enter an email"
+                  placeholder="Employee No. or Business No."
+                  onChange={(e) => setId(e.target.value)}
                 />
               </label>
               <label className="input input-bordered flex items-center gap-2 mb-2">
@@ -54,34 +127,33 @@ const Login = () => {
                   type={password ? "text" : "password"}
                   className="grow text-gray-600"
                   placeholder="Enter a password"
+                  onChange={(e) => setPass(e.target.value)}
                 />
               </label>
-              <select className="select select-bordered w-full mb-3 text-gray-500">
+              <select className="select select-bordered w-full mb-3 text-gray-500"
+              value={userType} onChange={(e) => setUserType(e.target.value)}>
                 <option disabled selected>
                   Login as:
                 </option>
-                <option>Employee</option>
-                <option>Tenant</option>
+                <option value="employee">Employee</option>
+                <option value="tenant">Tenant</option>
               </select>
               <div className="flex items-center justify-between mb-2">
                 <label className="flex items-center text-sm">
                   <input
                     type="checkbox"
                     onChange={() => showPassword(!password)}
-                    className="mr-2 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                    className="mr-2 text-blue-600 border-gray-300 round ed focus:ring-blue-500"
                   />
                   Show Password
                 </label>
               </div>
-              <NavLink to="/tenant">
                 <button
-                  type="submit"
+                  onClick={check}
                   className="w-full py-3 font-bold text-white bg-buttonColor rounded-lg"
                 >
                   Login
                 </button>
-              </NavLink>
-            </form>
             <div className="divider before:bg-white after:bg-white">or</div>
             <button
               className="w-full py-3 font-bold text-white bg-red-700 border-red-700 rounded-lg"
@@ -94,6 +166,22 @@ const Login = () => {
           <Register />
         )}
       </div>
+
+      {/* Status Modal */}
+      {showStatusModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+          <div className="bg-white p-6 rounded-lg max-w-sm w-full">
+            <h3 className="text-lg font-bold mb-4 text-black">Account Status</h3>
+            <p className="mb-4 text-black">{statusMessage}</p>
+            <button
+              onClick={() => setShowStatusModal(false)}
+              className="w-full py-2 bg-blue-600 text-white rounded-lg"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
     </>
   );
 };

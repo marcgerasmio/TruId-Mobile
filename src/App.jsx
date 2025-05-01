@@ -8,6 +8,7 @@ import EmployeeDashboard from "./components/EmployeeDashboard.jsx";
 import EmployeeHistory from "./components/EmployeeHistory.jsx";
 import EmployeeTenants from "./components/EmployeeTenants.jsx";
 import EmployeeUser from "./components/EmployeeScan.jsx";
+import Payment from "./components/Payment.jsx";
 
 const App = () => {
   return (
@@ -21,6 +22,7 @@ const App = () => {
       <Route path="/scanned" element={<EmployeeHistory />} />
       <Route path="/todaystenants" element={<EmployeeTenants />} />
       <Route path="/user" element={<EmployeeUser />} />
+      <Route path="/payment" element={<Payment />} />
     </Routes>
   );
 };

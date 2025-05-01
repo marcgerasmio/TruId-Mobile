@@ -1,8 +1,31 @@
 import EmployeeNavigations from "./EmployeeNavigations.jsx";
 import { FaUsers } from "react-icons/fa";
 import { FaSortAmountDown } from "react-icons/fa";
+import supabase from "./supabaseClient.jsx";
+import { useEffect, useState } from "react";
 
 const EmployeeTenants = () => {
+  const [sanctions, setSanctions] = useState([]);
+
+  const fetch_sanctions = async () => {
+    try {
+      const { error, data } = await supabase
+        .from('Sanction')
+        .select('*')
+        .eq('status', 'Unresolved');
+
+      if (error) throw error;
+      setSanctions(data);
+    } catch (error) {
+      alert("An unexpected error occurred.");
+      console.error('Error during fetching sanctions:', error.message);
+    }
+  };
+
+  useEffect(() => {
+    fetch_sanctions();
+  }, []);
+
   return (
     <>
       <div className="font-mono container mx-auto w-full p-5 space-y-6">
@@ -11,44 +34,35 @@ const EmployeeTenants = () => {
             <div className="flex justify-center content-center mb-8 gap-2">
               <>
                 <FaUsers size={29} className="text-yellow-600" />
-                <h2 className="text-2xl font-semibold">Tenant Backlogs</h2>
+                <h2 className="text-2xl font-semibold">Tenant Sanctions</h2>
               </>
             </div>
             <hr />
           </div>
-          <div className="flex justify-between">
-            <label className="input flex">
-              <input type="date" className="grow" />
-            </label>
-            <select className="select">
-              <option disabled selected>
-                Dept./Section
-              </option>
-              <option>Dept. 1</option>
-              <option>Dept. 2</option>
-            </select>
-          </div>
-
           <div className="max-h-screen">
             <div className="overflow-y-auto max-h-[calc(100vh-8rem)] sm:max-h-[calc(100vh-10rem)] space-y-3 mb-16">
-              {[...Array(5)].map((_, i) => (
-                <div key={i} className="card bg-yellow-200">
-                  <div className="p-4 flex justify-between items-center">
-                    <div>
-                      <p className="font-medium">Department {4 + i}B</p>
-                      <p className="text-sm text-base-content text-opacity-60">
-                        Gaisano Mall - Butuan
-                      </p>
-                      <p className="text-sm text-base-content text-opacity-60">
-                        Date: June 30, 2023
-                      </p>
+              {sanctions && sanctions.length > 0 ? (
+                sanctions.map((sanction, i) => (
+                  <div key={i} className="card bg-yellow-200">
+                    <div className="p-4 flex justify-between items-center">
+                      <div>
+                        <p className="font-medium">{sanction.store_name}</p>
+                        <p className="text-sm text-base-content text-opacity-60">
+                          {sanction.complain}
+                        </p>
+                        <p className="text-sm text-base-content text-opacity-60">
+                          {sanction.sanction}
+                        </p>
+                      </div>
+                      <span className="badge bg-yellow-600 text-white p-3 font-bold">
+                        {sanction.business_number}
+                      </span>
                     </div>
-                    <span className="badge bg-yellow-600 text-white p-3 font-bold">
-                      Pending
-                    </span>
                   </div>
-                </div>
-              ))}
+                ))
+              ) : (
+                <p className="text-center text-gray-500">No unresolved sanctions found.</p>
+              )}
             </div>
           </div>
         </div>

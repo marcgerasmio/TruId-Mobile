@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">TruID</string>
+    <string name="title_activity_main">TruID</string>
+    <string name="package_name">com.truid.app</string>
+    <string name="custom_url_scheme">com.truid.app</string>
+</resources>
