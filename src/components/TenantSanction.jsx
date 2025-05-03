@@ -45,24 +45,29 @@ const TenantSanction = () => {
   return (
     <>
       <div className="font-mono container mx-auto w-full p-5 space-y-6">
-        <div className="space-y-2">
-          {/* <div className="card mt-3">
-            <div className="flex justify-center content-center mb-8 gap-1">
-              <PiSealWarningFill size={30} className="text-yellow-600" />
-              <h2 className="text-2xl font-semibold">Tenant Sanction</h2>
+        <div className="space-y-3">
+          <div className="card mt-2">
+            <div className="mb-3 text-center">
+              <div className="inline-flex items-center gap-2 text-warning">
+                <PiSealWarningFill size={28} />
+                <h1 className="text-2xl font-bold tracking-tight">Sanctions</h1>
+              </div>
             </div>
-          </div> */}
-
-          <div className="flex justify-center content-center">
-            <span className="italic text-gray-400">For future purposes...</span>
+            <p className="text-gray-600 text-sm text-center">
+              List of all of your sanctions
+            </p>
           </div>
+
+          {/* <div className="flex justify-center content-center">
+            <span className="italic text-gray-400">For future purposes...</span>
+          </div> */}
 
           <div className="max-h-screen">
             <div className="overflow-y-auto max-h-[calc(100vh-8rem)] sm:max-h-[calc(100vh-10rem)] space-y-3 mb-16">
               {pendingData.map((item, index) => (
                 <div
                   key={index}
-                  className="card shadow-md border-2 border-yellow-600"
+                  className="bg-white shadow-md rounded-lg items-start border-l-4 border-yellow-600"
                 >
                   <div className="flex justify-between p-5">
                     <div>
