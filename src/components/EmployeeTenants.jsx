@@ -10,15 +10,15 @@ const EmployeeTenants = () => {
   const fetch_sanctions = async () => {
     try {
       const { error, data } = await supabase
-        .from('Sanction')
-        .select('*')
-        .eq('status', 'Unresolved');
+        .from("Sanction")
+        .select("*")
+        .eq("status", "Unresolved");
 
       if (error) throw error;
       setSanctions(data);
     } catch (error) {
       alert("An unexpected error occurred.");
-      console.error('Error during fetching sanctions:', error.message);
+      console.error("Error during fetching sanctions:", error.message);
     }
   };
 
@@ -30,16 +30,20 @@ const EmployeeTenants = () => {
     <>
       <div className="font-mono container mx-auto w-full p-5 space-y-6">
         <div className="space-y-2">
-          <div className="card mt-3">
+          {/* <div className="card mt-3">
             <div className="flex justify-center content-center mb-8 gap-2">
               <>
                 <FaUsers size={29} className="text-yellow-600" />
                 <h2 className="text-2xl font-semibold">Tenant Sanctions</h2>
               </>
             </div>
-            <hr />
+          </div> */}
+
+          <div className="flex justify-center content-center">
+            <span className="italic text-gray-400">For future purposes...</span>
           </div>
-          <div className="max-h-screen">
+
+          {/* <div className="max-h-screen">
             <div className="overflow-y-auto max-h-[calc(100vh-8rem)] sm:max-h-[calc(100vh-10rem)] space-y-3 mb-16">
               {sanctions && sanctions.length > 0 ? (
                 sanctions.map((sanction, i) => (
@@ -64,7 +68,7 @@ const EmployeeTenants = () => {
                 <p className="text-center text-gray-500">No unresolved sanctions found.</p>
               )}
             </div>
-          </div>
+          </div> */}
         </div>
       </div>
       <EmployeeNavigations />

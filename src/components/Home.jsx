@@ -1,5 +1,6 @@
 import Login from "./Login.jsx";
 import { useState } from "react";
+import { IoIosArrowDroprightCircle } from "react-icons/io";
 
 const Home = () => {
   const [isHome, isLogin] = useState(true);
@@ -24,11 +25,11 @@ const Home = () => {
               <>
                 <h1 className="mb-5 text-8xl sm:text-4xl lg:text-5xl font-bold">
                   Tru
-                  <span className="text-red-700">I</span>
-                  <span className="text-blue-900">D</span>
+                  <span className="text-error">I</span>
+                  <span className="text-info">D</span>
                 </h1>
                 <p className="mb-4 text-lg sm:text-base lg:text-lg font-bold">
-                  Tenant Profile and QR Code Rent Payment System
+                  A QR Code Rent Payment System
                 </p>
                 <p className="mb-8 text-sm sm:text-base font-semibold">
                   "Effortless Rent Management with Tenant Profiles and Secure QR
@@ -36,9 +37,10 @@ const Home = () => {
                 </p>
                 <div className="flex flex-col sm:flex-row justify-center content-center gap-4 sm:gap-10">
                   <button
-                    className="w-full sm:w-64 px-4 py-4 font-bold text-md text-white bg-buttonColor rounded-lg"
+                    className="flex justify-center gap-2 text-white btn btn-info rounded-full"
                     onClick={SwitchToggler}
                   >
+                    <IoIosArrowDroprightCircle />
                     Get Started
                   </button>
                 </div>
