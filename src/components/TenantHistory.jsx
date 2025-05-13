@@ -22,6 +22,11 @@ const TenantHistory = () => {
   const [statusFilter, setStatusFilter] = useState("all");
   const [dateRange, setDateRange] = useState({ from: "", to: "" });
   const [showFilters, setShowFilters] = useState(false);
+  const [showUploadModal, setShowUploadModal] = useState(false);
+  const [uploadPayment, setUploadPayment] = useState(null);
+  const [uploadFile, setUploadFile] = useState(null);
+  const [gcashNumber,setGcashNumber] = useState("");
+  const [gcashName,setGcashName] = useState("");
 
   const number = sessionStorage.getItem("number");
 
@@ -45,8 +50,26 @@ const TenantHistory = () => {
     }
   };
 
+  const fetchGcash = async () => {
+    try {
+      const { error, data } = await supabase
+        .from("Gcash")
+        .select("*")
+        .single();
+
+      if (error) throw error;
+setGcashName(data.name);
+setGcashNumber(data.number);
+    } catch (error) {
+      console.error("Error fetching payment history:", error.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchPayments();
+    fetchGcash();
   }, []);
 
   useEffect(() => {
@@ -88,36 +111,47 @@ const TenantHistory = () => {
     setFilteredData(result);
   }, [paymentData, statusFilter, dateRange, searchTerm]);
 
-  const handleFileUpload = async (event, payment) => {
-    const file = event.target.files[0];
-    if (!file) return;
+  const handleFileInputChange = (event) => {
+    setUploadFile(event.target.files[0]);
+  };
 
+  const openUploadModal = (payment) => {
+    setUploadPayment(payment);
+    setShowUploadModal(true);
+    setUploadFile(null);
+  };
+
+  const closeUploadModal = () => {
+    setShowUploadModal(false);
+    setUploadPayment(null);
+    setUploadFile(null);
+  };
+
+  const handleUploadSubmit = async (e) => {
+    e.preventDefault();
+    if (!uploadFile) {
+      alert("Please select a file to upload.");
+      return;
+    }
     setUploading(true);
     try {
-      // Upload file to Supabase Storage
-      const fileExt = file.name.split(".").pop();
-      const fileName = `${payment.id}-${Date.now()}.${fileExt}`;
+      const fileExt = uploadFile.name.split(".").pop();
+      const fileName = `${uploadPayment.id}-${Date.now()}.${fileExt}`;
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from("gcash")
-        .upload(fileName, file);
-
+        .upload(fileName, uploadFile);
       if (uploadError) throw uploadError;
-
-      // Get the public URL
       const {
         data: { publicUrl },
       } = supabase.storage.from("gcash").getPublicUrl(fileName);
-
       // Update the payment record with the proof URL
       const { error: updateError } = await supabase
         .from("Rent")
         .update({ proof: publicUrl })
-        .eq("id", payment.id);
-
+        .eq("id", uploadPayment.id);
       if (updateError) throw updateError;
-
-      // Refresh the data
       fetchPayments();
+      closeUploadModal();
     } catch (error) {
       console.error("Error uploading file:", error);
       alert("Error uploading file. Please try again.");
@@ -356,19 +390,17 @@ const TenantHistory = () => {
 
                       <div className="flex flex-wrap items-center gap-3 mt-3">
                         {item.status === "On-Process" && (
-                          <label className="cursor-pointer inline-flex items-center px-3 py-1.5 bg-purple-100 text-purple-800 rounded-lg hover:bg-purple-200 transition-colors">
-                            <input
-                              type="file"
-                              className="hidden"
-                              accept="image/*,.pdf"
-                              onChange={(e) => handleFileUpload(e, item)}
-                              disabled={uploading}
-                            />
+                          <button
+                            type="button"
+                            onClick={() => openUploadModal(item)}
+                            className="inline-flex items-center px-3 py-1.5 bg-purple-100 text-purple-800 rounded-lg hover:bg-purple-200 transition-colors"
+                            disabled={uploading}
+                          >
                             <FaUpload size={14} className="mr-2" />
                             <span className="text-sm font-medium">
                               {item.proof ? "Update Proof" : "Upload Proof"}
                             </span>
-                          </label>
+                          </button>
                         )}
 
                         {item.proof && (
@@ -456,6 +488,54 @@ const TenantHistory = () => {
                 />
               )}
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Upload Proof Modal */}
+      {showUploadModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg overflow-hidden max-w-md w-full">
+            <div className="flex justify-between items-center p-4 border-b border-gray-200">
+              <h3 className="text-lg font-medium text-gray-800">Upload Payment Proof</h3>
+              <button
+                onClick={closeUploadModal}
+                className="text-gray-500 hover:text-gray-700 p-1 rounded-full hover:bg-gray-100"
+              >
+                <IoClose size={24} />
+              </button>
+            </div>
+            <form onSubmit={handleUploadSubmit} className="p-6 space-y-5">
+            <label className="block text-sm font-medium text-gray-700 mb-1">Gcash Number : {gcashNumber}</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Gcash Name: {gcashName}</label>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Proof File</label>
+                <input
+                  type="file"
+                  accept="image/*,.pdf"
+                  onChange={handleFileInputChange}
+                  className="block w-full border border-gray-300 rounded-lg px-3 py-2"
+                  disabled={uploading}
+                />
+              </div>
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={closeUploadModal}
+                  className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg w-full"
+                  disabled={uploading}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-info text-white rounded-lg w-full"
+                  disabled={uploading}
+                >
+                  {uploading ? "Uploading..." : "Upload"}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
